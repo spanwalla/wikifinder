@@ -9,7 +9,7 @@ class Page(Base):
     __tablename__ = "pages"
 
     id = Column(Integer, primary_key=True)
-    title = Column(String, index=True)
+    title = Column(String)
     is_redirect = Column(Boolean, default=False)
     outgoing_links = relationship("PageLink", foreign_keys="[PageLink.page_from]", backref="source_page")
     incoming_links = relationship("PageLink", foreign_keys="[PageLink.page_target]", backref="target_page")
