@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+import time
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
@@ -25,11 +26,19 @@ async def root():
 
 @app.get("/route")
 async def find_shortest_route(source: int, destination: int, db: Session = Depends(get_db)):
-    query = schemas.QueryCreate(start_page=source, end_page=destination, execution_time=0.5)
-    crud.create_query(db=db, item=query)
+    start = time.time()
+    db_query = crud.get_page_by_id(db, source)
+    if db_query is None:
+        raise HTTPException(status_code=404, detail="Page not found")
+    links = db_query.links
+    end = time.time()
+
+    # query = schemas.QueryCreate(start_page=source, end_page=destination, execution_time=end-start)
+    # crud.create_query(db=db, item=query)
+
     return {"route": [source, destination],
-            "time": 399,
-            "start": crud.get_page_by_id(db, source)}
+            "time": end - start,
+            "links": links}
 
 
 @app.get("/query/{query_id}", response_model=schemas.Query)

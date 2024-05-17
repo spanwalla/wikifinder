@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Float, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Float, Boolean, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -11,16 +11,15 @@ class Page(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String)
     is_redirect = Column(Boolean, default=False)
-    outgoing_links = relationship("PageLink", foreign_keys="[PageLink.page_from]", backref="source_page")
-    incoming_links = relationship("PageLink", foreign_keys="[PageLink.page_target]", backref="target_page")
+    links = relationship("PageLink", foreign_keys="[PageLink.page_id]", backref="page")
 
 
 class PageLink(Base):
     __tablename__ = "pagelinks"
 
-    id = Column(Integer, primary_key=True)
-    page_from = Column(Integer, ForeignKey("pages.id"))
-    page_target = Column(Integer, ForeignKey("pages.id"))
+    page_id = Column(Integer, ForeignKey("pages.id"), primary_key=True)
+    incoming_links = Column(Text, default="-")
+    outgoing_links = Column(Text, default="-")
 
 
 class Query(Base):

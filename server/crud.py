@@ -1,9 +1,10 @@
-from sqlalchemy import func, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from . import models, schemas
 
 
 def get_page_by_id(db: Session, page_id: int):
+    # return db.execute(text('SELECT * FROM pages WHERE id = :page_id LIMIT 1'), {"page_id": page_id}).fetchone()
     return db.query(models.Page).filter(models.Page.id == page_id).first()
 
 
