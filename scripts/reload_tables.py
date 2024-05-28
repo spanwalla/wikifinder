@@ -22,8 +22,12 @@ def reload_table(db: Session, file: str, table: str):
         csv_reader = csv.reader(csvfile, delimiter='\t')
 
         for row in csv_reader:
-            # data.append(models.Page(id=int(row[0]), title=row[1], is_redirect=(int(row[2]) == 1)))
-            data.append(models.PageLink(page_id=int(row[0]), incoming_links=row[1], outgoing_links=row[2]))
+            # кринж, который лучше переделать
+            if table == 'page':
+                data.append(models.Page(id=int(row[0]), title=row[1], is_redirect=(int(row[2]) == 1)))
+            elif table == 'pagelinks':
+                data.append(models.PageLink(page_id=int(row[0]), incoming_links=row[1], outgoing_links=row[2]))
+
             progress_bar.update(1)
             if len(data) >= 1000000:
                 db.bulk_save_objects(data)

@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 import time
 
-from . import crud, models, schemas
+from . import crud, models, schemas, mitm
 from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
@@ -21,30 +21,17 @@ def get_db():
 
 @app.get("/")
 async def root():
-    return {"dump": "24-04-2024"}
+    return {"dump": "01-05-2024"}
 
 
 @app.get("/route")
-async def find_shortest_route(source: int, destination: int, db: Session = Depends(get_db)):
+async def get_shortest_route(source: int, destination: int, db: Session = Depends(get_db)):
     start = time.time()
-    db_query = crud.get_page_by_id(db, source)
-    if db_query is None:
-        raise HTTPException(status_code=404, detail="Page not found")
-    links = db_query.links
+    routes = mitm.find_shortest_route(db, source, destination)
     end = time.time()
 
-    # query = schemas.QueryCreate(start_page=source, end_page=destination, execution_time=end-start)
-    # crud.create_query(db=db, item=query)
+    query = schemas.QueryCreate(start_page=source, end_page=destination, execution_time=end-start, paths=len(routes))
+    crud.create_query(db=db, item=query)
 
-    return {"route": [source, destination],
-            "time": end - start,
-            "links": links}
-
-
-@app.get("/query/{query_id}", response_model=schemas.Query)
-async def read_query(query_id: int, db: Session = Depends(get_db)):
-    db_query = crud.get_query_by_id(db, query_id)
-    if db_query is None:
-        raise HTTPException(status_code=404, detail="Query not found")
-
-    return db_query
+    return {"routes": routes,
+            "time": end - start}

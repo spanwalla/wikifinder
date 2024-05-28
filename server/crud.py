@@ -1,26 +1,32 @@
-from sqlalchemy import text
+from typing import Collection
 from sqlalchemy.orm import Session
 from . import models, schemas
 
 
-def get_page_by_id(db: Session, page_id: int):
-    # return db.execute(text('SELECT * FROM pages WHERE id = :page_id LIMIT 1'), {"page_id": page_id}).fetchone()
+def split_links(links: str, sep: str = ",") -> list[int]:
+    if links == "-":
+        return []
+    return list(map(int, links.split(sep)))
+
+
+def read_page_by_id(db: Session, page_id: int) -> models.Page:
     return db.query(models.Page).filter(models.Page.id == page_id).first()
 
 
-def get_page_id_by_title(db: Session, page_title: str):
-    return db.execute(text('SELECT id FROM pages WHERE title = :page_title LIMIT 1'),
-                      {"page_title": page_title}).scalar()
-    # return db.query(models.Page).filter(func.match(models.Page.title, page_title)).first()
+def read_incoming_links(db: Session, pages: Collection[int]) -> dict[int, list[int]]:
+    res = db.query(models.PageLink.page_id, models.PageLink.incoming_links).filter(models.PageLink.page_id.in_(pages))
+    return {page: split_links(links) for page, links in res.all()}
 
 
-def create_query(db: Session, item: schemas.QueryCreate):
-    db_query = models.Query(start_page=item.start_page, end_page=item.end_page, execution_time=item.execution_time)
+def read_outgoing_links(db: Session, pages: Collection[int]) -> dict[int, list[int]]:
+    res = db.query(models.PageLink.page_id, models.PageLink.outgoing_links).filter(models.PageLink.page_id.in_(pages))
+    return {page: split_links(links) for page, links in res.all()}
+
+
+def create_query(db: Session, item: schemas.QueryCreate) -> models.Query:
+    db_query = models.Query(start_page=item.start_page, end_page=item.end_page, execution_time=item.execution_time,
+                            paths=item.paths)
     db.add(db_query)
     db.commit()
     db.refresh(db_query)
     return db_query
-
-
-def get_query_by_id(db: Session, query_id: int):
-    return db.query(models.Query).filter(models.Query.id == query_id).first()

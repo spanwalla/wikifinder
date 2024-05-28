@@ -11,7 +11,7 @@ class Page(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String)
     is_redirect = Column(Boolean, default=False)
-    links = relationship("PageLink", foreign_keys="[PageLink.page_id]", backref="page")
+    links = relationship("PageLink", foreign_keys="[PageLink.page_id]", backref="page", uselist=False)
 
 
 class PageLink(Base):
@@ -29,4 +29,5 @@ class Query(Base):
     start_page = Column(Integer, ForeignKey("pages.id"))
     end_page = Column(Integer, ForeignKey("pages.id"))
     execution_time = Column(Float)
+    paths = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -1,4 +1,3 @@
-from typing import List
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -14,24 +13,25 @@ class PageCreate(PageBase):
 
 
 class Page(PageBase):
-    outgoing_links: List[int] = []
-    incoming_links: List[int] = []
+    outgoing_links: list[int] = []
+    incoming_links: list[int] = []
 
     class Config:
         from_attributes = True
 
 
 class PageLinkBase(BaseModel):
-    page_from: int
+    page_id: int
+    page_from: str = "-"
+    page_target: str = "-"
 
 
 class PageLinkCreate(PageLinkBase):
-    target_title: str
+    pass
 
 
 class PageLink(PageLinkBase):
-    id: int
-    page_target: int
+    pass
 
     class Config:
         from_attributes = True
@@ -41,6 +41,7 @@ class QueryBase(BaseModel):
     start_page: int
     end_page: int
     execution_time: float
+    paths: int
 
 
 class QueryCreate(QueryBase):
