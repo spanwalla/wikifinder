@@ -34,7 +34,7 @@ async def get_shortest_route(source: int, destination: int, db: Session = Depend
     end = time.time()
 
     query = schemas.QueryCreate(start_page_id=source, end_page_id=destination,
-                                execution_time=end-start, paths=len(routes))
+                                execution_time=end - start, paths=len(routes))
     crud.create_query(db=db, item=query)
 
     return {"routes": routes,
