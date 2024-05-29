@@ -1,5 +1,7 @@
 from typing import Collection
-from sqlalchemy.orm import Session
+
+from sqlalchemy import exists, desc
+from sqlalchemy.orm import Session, joinedload
 from . import models, schemas
 
 
@@ -9,8 +11,8 @@ def split_links(links: str, sep: str = ",") -> list[int]:
     return list(map(int, links.split(sep)))
 
 
-def read_page_by_id(db: Session, page_id: int) -> models.Page:
-    return db.query(models.Page).filter(models.Page.id == page_id).first()
+def page_exists(db: Session, page_id: int) -> bool:
+    return db.query(exists().where(models.Page.id == page_id)).scalar()
 
 
 def read_incoming_links(db: Session, pages: Collection[int]) -> dict[int, list[int]]:
@@ -24,9 +26,21 @@ def read_outgoing_links(db: Session, pages: Collection[int]) -> dict[int, list[i
 
 
 def create_query(db: Session, item: schemas.QueryCreate) -> models.Query:
-    db_query = models.Query(start_page=item.start_page, end_page=item.end_page, execution_time=item.execution_time,
-                            paths=item.paths)
+    db_query = models.Query(start_page_id=item.start_page_id, end_page_id=item.end_page_id,
+                            execution_time=item.execution_time, paths=item.paths)
     db.add(db_query)
     db.commit()
     db.refresh(db_query)
     return db_query
+
+
+def read_last_queries(db: Session, limit: int = 10):
+    queries = db.query(models.Query).order_by(desc(models.Query.id)).limit(limit).all()
+    result = []
+    for query in queries:
+        result.append(schemas.Query(id=query.id, start_page_id=query.start_page_id,
+                                    start_page_title=query.start_page.title, end_page_id=query.end_page_id,
+                                    end_page_title=query.end_page.title, created_at=query.created_at,
+                                    execution_time=query.execution_time, paths=query.paths))
+
+    return result

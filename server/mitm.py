@@ -4,18 +4,18 @@ from . import crud
 
 
 def get_paths(page_ids: Collection[int], visited: dict[int, list[int]]) -> list[list[int]]:
-    paths = list()
+    """ Рекурсивно получает все пути из начальных вершин к текущим """
+    paths = []
 
     for page_id in page_ids:
         if page_id < 0:
-            # Если пришли в вершину, из которой начинали обход, возвращаем пустой путь.
-            return [[]]
-        else:
-            # Иначе рекурсивно идём к началу обхода, добавляя к полученным путям текущую страницу
-            current_paths = get_paths(visited[page_id], visited)
-            for path in current_paths:
-                path.append(page_id)
-                paths.append(path)
+            return [[]]  # Возвращаем пустой путь для начальной вершины
+
+        # Рекурсивно идём к началу обхода, добавляя к полученным путям текущую страницу.
+        current_paths = get_paths(visited[page_id], visited)
+        for path in current_paths:
+            path.append(page_id)
+            paths.append(path)
 
     return paths
 
@@ -35,7 +35,7 @@ def find_shortest_route(db: Session, source_page_id: int, target_page_id: int) -
     paths = set()
     move_forward = True
 
-    while len(paths) == 0 and unvisited_forward and unvisited_backward:
+    while not paths and unvisited_forward and unvisited_backward:
         if move_forward:
             outgoing_links = crud.read_outgoing_links(db, unvisited_forward.keys())
             process_links(outgoing_links, unvisited_forward, visited_forward)
@@ -48,32 +48,28 @@ def find_shortest_route(db: Session, source_page_id: int, target_page_id: int) -
 
         # Проверим, найден ли путь.
         # Если какая-то вершина содержится в результатах двух обходов одновременно, то путь найден.
-        for page_id in unvisited_forward:
-            if page_id in unvisited_backward:
-                source_paths = get_paths(unvisited_forward[page_id], visited_forward)
-                target_paths = get_paths(unvisited_backward[page_id], visited_backward)
+        common_page_ids = unvisited_forward.keys() & unvisited_backward.keys()
+        for page_id in common_page_ids:
+            source_paths = get_paths(unvisited_forward[page_id], visited_forward)
+            target_paths = get_paths(unvisited_backward[page_id], visited_backward)
 
-                for target_path in target_paths:
-                    target_path.reverse()
-                    for source_path in source_paths:
-                        paths.add(tuple(source_path + [page_id] + target_path))
+            for target_path in target_paths:
+                target_path.reverse()
+                for source_path in source_paths:
+                    paths.add(tuple(source_path + [page_id] + target_path))
 
     return paths
 
 
 def process_links(links: dict[int, list[int]], unvisited: dict[int, list[int]], visited: dict[int, list[int]]):
-    for page_id in unvisited:
-        visited[page_id] = unvisited[page_id]
-
+    """ Обрабатывает ссылки и обновляет списки вершин. """
+    visited.update(unvisited)
     unvisited.clear()
 
     for page_id, linked_page_ids in links.items():
         for linked_page_id in linked_page_ids:
-            # Если ещё не были в связанной вершине, добавим её в список для обхода на следующей итерации,
-            # а также отметим, что в неё можно попасть из текущей вершины.
-            if (linked_page_id not in visited) and (linked_page_id not in unvisited):
-                unvisited[linked_page_id] = [page_id]
-
-            # Если вершина уже добавлена в список обхода, добавим информацию о наличии дополнительного пути к ней.
-            elif linked_page_id in unvisited:
-                unvisited[linked_page_id].append(page_id)
+            if linked_page_id not in visited:
+                if linked_page_id not in unvisited:
+                    unvisited[linked_page_id] = [page_id]
+                else:
+                    unvisited[linked_page_id].append(page_id)

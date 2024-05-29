@@ -38,8 +38,8 @@ class PageLink(PageLinkBase):
 
 
 class QueryBase(BaseModel):
-    start_page: int
-    end_page: int
+    start_page_id: int
+    end_page_id: int
     execution_time: float
     paths: int
 
@@ -51,6 +51,8 @@ class QueryCreate(QueryBase):
 class Query(QueryBase):
     id: int
     created_at: datetime
+    start_page_title: str
+    end_page_title: str
 
     class Config:
         from_attributes = True

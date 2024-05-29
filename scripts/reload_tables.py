@@ -23,7 +23,7 @@ def reload_table(db: Session, file: str, table: str):
 
         for row in csv_reader:
             # кринж, который лучше переделать
-            if table == 'page':
+            if table == 'pages':
                 data.append(models.Page(id=int(row[0]), title=row[1], is_redirect=(int(row[2]) == 1)))
             elif table == 'pagelinks':
                 data.append(models.PageLink(page_id=int(row[0]), incoming_links=row[1], outgoing_links=row[2]))
