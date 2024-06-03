@@ -1,7 +1,7 @@
 from typing import Collection
 
 from sqlalchemy import exists, desc
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from . import models, schemas
 
 
@@ -13,6 +13,14 @@ def split_links(links: str, sep: str = ",") -> list[int]:
 
 def page_exists(db: Session, page_id: int) -> bool:
     return db.query(exists().where(models.Page.id == page_id)).scalar()
+
+
+def get_correct_page_id(db: Session, page_id: int) -> int:
+    page = db.query(models.Page.id, models.Page.is_redirect).filter(models.Page.id == page_id).first()
+    if page.is_redirect:
+        redirect = db.query(models.Redirect.target_page_id).filter(models.Redirect.source_page_id == page.id).scalar()
+        return redirect
+    return page.id
 
 
 def read_incoming_links(db: Session, pages: Collection[int]) -> dict[int, list[int]]:

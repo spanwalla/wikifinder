@@ -15,7 +15,7 @@ def reload_table(db: Session, file: str, table: str):
     models.Base.metadata.drop_all(bind=engine, tables=[models.Base.metadata.tables[table]])
     models.Base.metadata.create_all(bind=engine)
 
-    csv.field_size_limit(5000000)
+    csv.field_size_limit(6000000)
 
     data = list()
     with open(file, 'r', encoding='utf-8') as csvfile, tqdm(disable=False) as progress_bar:
@@ -27,6 +27,8 @@ def reload_table(db: Session, file: str, table: str):
                 data.append(models.Page(id=int(row[0]), title=row[1], is_redirect=(int(row[2]) == 1)))
             elif table == 'pagelinks':
                 data.append(models.PageLink(page_id=int(row[0]), incoming_links=row[1], outgoing_links=row[2]))
+            elif table == 'redirects':
+                data.append(models.Redirect(source_page_id=int(row[0]), target_page_id=int(row[1])))
 
             progress_bar.update(1)
             if len(data) >= 1000000:

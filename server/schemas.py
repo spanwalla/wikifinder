@@ -37,6 +37,20 @@ class PageLink(PageLinkBase):
         from_attributes = True
 
 
+class RedirectBase(BaseModel):
+    source_page_id: int
+    target_page_id: int
+
+
+class RedirectCreate(RedirectBase):
+    pass
+
+
+class Redirect(RedirectBase):
+    class Config:
+        from_attributes = True
+
+
 class QueryBase(BaseModel):
     start_page_id: int
     end_page_id: int

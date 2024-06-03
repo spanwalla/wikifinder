@@ -30,7 +30,7 @@ async def get_shortest_route(source: int, destination: int, db: Session = Depend
         raise HTTPException(404, "Page doesn't exist.")
 
     start = time.time()
-    routes = mitm.find_shortest_route(db, source, destination)
+    routes = mitm.find_shortest_route(db, crud.get_correct_page_id(db, source), crud.get_correct_page_id(db, destination))
     end = time.time()
 
     query = schemas.QueryCreate(start_page_id=source, end_page_id=destination,

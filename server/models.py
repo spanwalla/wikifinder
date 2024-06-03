@@ -21,6 +21,13 @@ class PageLink(Base):
     outgoing_links = Column(Text, default="-")
 
 
+class Redirect(Base):
+    __tablename__ = "redirects"
+
+    source_page_id = Column(Integer, ForeignKey("pages.id"), primary_key=True)
+    target_page_id = Column(Integer, ForeignKey("pages.id"), primary_key=True)
+
+
 class Query(Base):
     __tablename__ = "queries"
 
