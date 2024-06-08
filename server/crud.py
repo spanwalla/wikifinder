@@ -23,6 +23,11 @@ def get_correct_page_id(db: Session, page_id: int) -> int:
     return page.id
 
 
+def read_page_titles(db: Session, pages: Collection[int]) -> dict[int, str]:
+    query = db.query(models.Page.id, models.Page.title).filter(models.Page.id.in_(pages))
+    return dict(query.all())
+
+
 def read_incoming_links(db: Session, pages: Collection[int]) -> dict[int, list[int]]:
     res = db.query(models.PageLink.page_id, models.PageLink.incoming_links).filter(models.PageLink.page_id.in_(pages))
     return {page: split_links(links) for page, links in res.all()}

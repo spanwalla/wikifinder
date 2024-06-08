@@ -1,4 +1,5 @@
-from fastapi import Depends, FastAPI, HTTPException
+from typing import Annotated
+from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 import time
 
@@ -42,6 +43,12 @@ async def get_shortest_route(source: int, destination: int, db: Session = Depend
 
     return {"routes": routes,
             "time": end - start}
+
+
+@app.get("/titles/")
+async def get_page_titles(pages: Annotated[list[int], Query(alias="p")], db: Session = Depends(get_db)):
+    crud.read_page_titles(db, pages)
+    return {"result": crud.read_page_titles(db, pages)}
 
 
 @app.get("/queries/", response_model=list[schemas.Query])
