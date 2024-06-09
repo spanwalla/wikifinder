@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 import time
 
 from . import crud, models, schemas, mitm
@@ -18,6 +19,11 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler():
+    raise HTTPException(500, "Database error occurred.")
 
 
 @app.get("/")
