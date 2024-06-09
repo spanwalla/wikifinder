@@ -22,7 +22,7 @@ def get_db():
 
 
 @app.exception_handler(SQLAlchemyError)
-async def sqlalchemy_exception_handler():
+async def sqlalchemy_exception_handler(request, exc):
     raise HTTPException(500, "Database error occurred.")
 
 
