@@ -25,7 +25,7 @@ async def root():
     return {"dump": "01-05-2024"}
 
 
-@app.get("/route")
+@app.get("/route/")
 async def get_shortest_route(source: int, destination: int, db: Session = Depends(get_db)):
     if not (crud.page_exists(db, source) and crud.page_exists(db, destination)):
         raise HTTPException(404, "Page doesn't exist.")
