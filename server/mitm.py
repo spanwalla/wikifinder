@@ -1,6 +1,6 @@
-import sqlite3
 from typing import Collection
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from . import crud
 
 
@@ -42,16 +42,16 @@ def find_shortest_route(db: Session, source_page_id: int, target_page_id: int) -
             # В любом случае, ресурсов на их дальнейший поиск скорее всего не хватит.
             try:
                 outgoing_links = crud.read_outgoing_links(db, unvisited_forward.keys())
-            except sqlite3.OperationalError:
-                return set()
+            except SQLAlchemyError:
+                return paths
 
             process_links(outgoing_links, unvisited_forward, visited_forward)
 
         else:
             try:
                 incoming_links = crud.read_incoming_links(db, unvisited_backward.keys())
-            except sqlite3.OperationalError:
-                return set()
+            except SQLAlchemyError:
+                return paths
 
             process_links(incoming_links, unvisited_backward, visited_backward)
 
